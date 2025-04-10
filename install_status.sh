@@ -21,10 +21,18 @@ RAM=\$(free -h | awk '/^Mem:/ {print \$3 "/" \$2 " used"}')
 UPTIME=\$(uptime -p | sed 's/up //')
 
 MSG="📡 \$HOST\n🌡️ \$TEMP\n🧠 RAM: \$RAM\n🔁 \$UPTIME"
+# HDMI Check
+if tvservice -s | grep -q "HDMI"; then
+  HDMI_STATUS="🟢 ΝΑΙ"
+else
+  HDMI_STATUS="🔴 ΟΧΙ"
+fi
 
-curl -s -X POST https://api.telegram.org/bot\$BOT_TOKEN/sendMessage \\
-  -d chat_id="\$CHAT_ID" \\
-  -d text="\$MSG"
+MSG+="\n🖥️ HDMI: $HDMI_STATUS"
+
+curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+  -d chat_id="$CHAT_ID" \
+  -d text="$MSG"
 EOF
 
 chmod +x "$TARGET"
