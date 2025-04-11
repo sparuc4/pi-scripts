@@ -25,13 +25,13 @@ while read -r line; do
     HDMI_STATUS+="$CONNECTED - 🔢 Ανάλυση: $RESOLUTION"$'\n'
     CONNECTED=""
     RESOLUTION=""
-  elif [[ "$line" == "" && "$CONNECTED" != "" ]]; then
+  elif [[ -z "$line" && "$CONNECTED" != "" ]]; then
     HDMI_STATUS+="$CONNECTED"$'\n'
     CONNECTED=""
   fi
 done < <(kmsprint 2>/dev/null)
 
-# 📬 Telegram
+# 📬 Telegram αποστολή
 BOT_TOKEN=$(cat /home/pi/.telegram_token)
 CHAT_ID=$(cat /home/pi/.telegram_id)
 
@@ -40,4 +40,3 @@ MSG="📡 $HOST"$'\n'"🌡️ $TEMP"$'\n'"🧠 RAM: $RAM"$'\n'"🔁 $UPTIME"$'\n
 curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
   -d chat_id="$CHAT_ID" \
   -d text="$MSG"
-
