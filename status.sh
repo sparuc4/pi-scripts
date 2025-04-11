@@ -35,7 +35,8 @@ done < <(kmsprint 2>/dev/null)
 BOT_TOKEN=$(cat /home/pi/.telegram_token)
 CHAT_ID=$(cat /home/pi/.telegram_id)
 
-MSG="📡 $HOST\n🌡️ $TEMP\n🧠 RAM: $RAM\n🔁 $UPTIME\n🖥️ HDMI:\n$HDMI_STATUS"
+MSG=$(echo -e "📡 $HOST\n🌡️ $TEMP\n🧠 RAM: $RAM\n🔁 $UPTIME\n🖥️ HDMI:\n$HDMI_STATUS")
+
 
 curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
   -d chat_id="$CHAT_ID" \
