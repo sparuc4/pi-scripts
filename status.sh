@@ -22,11 +22,11 @@ while read -r line; do
     fi
   elif [[ "$line" == *"Mode:"* ]]; then
     RESOLUTION=$(echo "$line" | awk '{print $2}')
-    HDMI_STATUS+="$CONNECTED - 🔢 Ανάλυση: $RESOLUTION\n"
+    HDMI_STATUS+="$CONNECTED - 🔢 Ανάλυση: $RESOLUTION"$'\n'
     CONNECTED=""
     RESOLUTION=""
   elif [[ "$line" == "" && "$CONNECTED" != "" ]]; then
-    HDMI_STATUS+="$CONNECTED\n"
+    HDMI_STATUS+="$CONNECTED"$'\n'
     CONNECTED=""
   fi
 done < <(kmsprint 2>/dev/null)
@@ -35,8 +35,7 @@ done < <(kmsprint 2>/dev/null)
 BOT_TOKEN=$(cat /home/pi/.telegram_token)
 CHAT_ID=$(cat /home/pi/.telegram_id)
 
-MSG=$(echo -e "📡 $HOST\n🌡️ $TEMP\n🧠 RAM: $RAM\n🔁 $UPTIME\n🖥️ HDMI:\n$HDMI_STATUS")
-
+MSG="📡 $HOST"$'\n'"🌡️ $TEMP"$'\n'"🧠 RAM: $RAM"$'\n'"🔁 $UPTIME"$'\n'"🖥️ HDMI:"$'\n'"$HDMI_STATUS"
 
 curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
   -d chat_id="$CHAT_ID" \
