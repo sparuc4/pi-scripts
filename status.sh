@@ -6,7 +6,7 @@ TEMP=$(vcgencmd measure_temp | cut -d "=" -f2)
 RAM=$(free -h | awk '/Mem:/ {print $3 " / " $2}')
 UPTIME=$(uptime -p | cut -d " " -f2-)
 
-# 🖥️ HDMI CHECK per port με kmsprint (ακρίβεια)
+# 🖥️ HDMI CHECK με ανάλυση από Crtc
 HDMI_STATUS=""
 CURRENT_PORT=""
 CONNECTED=""
@@ -20,8 +20,8 @@ while read -r line; do
     else
       CONNECTED="🔴 $CURRENT_PORT: αποσυνδεδεμένο"
     fi
-  elif [[ "$line" == *"Mode:"* ]]; then
-    RESOLUTION=$(echo "$line" | awk '{print $2}')
+  elif [[ "$line" == *"Crtc"* && "$CONNECTED" != "" ]]; then
+    RESOLUTION=$(echo "$line" | awk '{print $4}')
     HDMI_STATUS+="$CONNECTED - 🔢 Ανάλυση: $RESOLUTION"$'\n'
     CONNECTED=""
     RESOLUTION=""
@@ -31,7 +31,7 @@ while read -r line; do
   fi
 done < <(kmsprint 2>/dev/null)
 
-# 📬 Telegram αποστολή
+# 📬 Telegram
 BOT_TOKEN=$(cat /home/pi/.telegram_token)
 CHAT_ID=$(cat /home/pi/.telegram_id)
 
@@ -40,3 +40,4 @@ MSG="📡 $HOST"$'\n'"🌡️ $TEMP"$'\n'"🧠 RAM: $RAM"$'\n'"🔁 $UPTIME"$'\n
 curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
   -d chat_id="$CHAT_ID" \
   -d text="$MSG"
+
