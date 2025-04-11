@@ -36,4 +36,3 @@ MSG="📡 $HOST\n🌡️ $TEMP\n🧠 RAM: $RAM\n🔁 $UPTIME\n🖥️ HDMI:\n$HD
 curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
   -d chat_id="$CHAT_ID" \
   -d text="$MSG"
-
