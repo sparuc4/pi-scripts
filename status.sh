@@ -1,43 +1,36 @@
 #!/bin/bash
 
-echo "🔐 Πληκτρολόγησε το Telegram BOT TOKEN:"
-read -r BOT_TOKEN
-
-echo "📩 Πληκτρολόγησε το Telegram CHAT ID:"
-read -r CHAT_ID
-
 TARGET="/home/pi/status.sh"
+TOKEN_FILE="/home/pi/.telegram_token"
+ID_FILE="/home/pi/.telegram_id"
 
-echo "⚙️ Δημιουργείται το $TARGET..."
-
-cat <<EOF > "$TARGET"
-#!/bin/bash
-
-BOT_TOKEN="$BOT_TOKEN"
-CHAT_ID="$CHAT_ID"
-HOST=\$(hostname)
-TEMP=\$(vcgencmd measure_temp | cut -d "=" -f2)
-RAM=\$(free -h | awk '/^Mem:/ {print \$3 "/" \$2 " used"}')
-UPTIME=\$(uptime -p | sed 's/up //')
-
-MSG="📡 \$HOST\n🌡️ \$TEMP\n🧠 RAM: \$RAM\n🔁 \$UPTIME"
-# HDMI Check
-if tvservice -s | grep -q "HDMI"; then
-  HDMI_STATUS="🟢 ΝΑΙ"
+# Ρώτα μόνο αν δεν υπάρχουν ήδη αποθηκευμένα
+if [ ! -f "$TOKEN_FILE" ]; then
+  read -p "🔑 Telegram Bot Token: " BOT_TOKEN
+  echo "$BOT_TOKEN" > "$TOKEN_FILE"
 else
-  HDMI_STATUS="🔴 ΟΧΙ"
+  BOT_TOKEN=$(cat "$TOKEN_FILE")
 fi
 
-MSG+="\n🖥️ HDMI: $HDMI_STATUS"
+if [ ! -f "$ID_FILE" ]; then
+  read -p "🆔 Telegram Chat ID: " CHAT_ID
+  echo "$CHAT_ID" > "$ID_FILE"
+else
+  CHAT_ID=$(cat "$ID_FILE")
+fi
 
-curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
-  -d chat_id="$CHAT_ID" \
-  -d text="$MSG"
-EOF
+echo "📥 Κατεβάζω το status.sh από το GitHub..."
+wget -q https://raw.githubusercontent.com/sparuc4/pi-scripts/main/status.sh -O "$TARGET"
+
+# Έλεγχος αν κατέβηκε σωστά
+if [ $? -ne 0 ]; then
+  echo "❌ Αποτυχία λήψης status.sh"
+  exit 1
+fi
 
 chmod +x "$TARGET"
 
-echo "✅ Το status.sh δημιουργήθηκε με επιτυχία."
+echo "✅ Το status.sh εγκαταστάθηκε/ενημερώθηκε."
 echo "🚀 Εκτελείται δοκιμαστικά..."
 
 bash "$TARGET"
