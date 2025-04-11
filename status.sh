@@ -6,23 +6,13 @@ TEMP=$(vcgencmd measure_temp | cut -d "=" -f2)
 RAM=$(free -h | awk '/Mem:/ {print $3 " / " $2}')
 UPTIME=$(uptime -p | cut -d " " -f2-)
 
-# 🖥️ HDMI CHECK με fallback
-HDMI_FILE=$(find /sys/class/drm/ -name "card*-HDMI-A-*/status" | head -n1)
+# 🖥️ HDMI CHECK με kmsprint (για vc4-kms-v3d)
+HDMI_RAW=$(kmsprint 2>/dev/null | grep -A1 "HDMI-A" | grep "connected")
 
-if [ -f "$HDMI_FILE" ]; then
-  HDMI_RAW=$(cat "$HDMI_FILE")
-  if [ "$HDMI_RAW" == "connected" ]; then
-    HDMI_STATUS="🟢 ΝΑΙ"
-  else
-    HDMI_STATUS="🔴 ΟΧΙ"
-  fi
+if [ -n "$HDMI_RAW" ]; then
+  HDMI_STATUS="🟢 ΝΑΙ (kmsprint)"
 else
-  HDMI_RAW=$(tvservice -s 2>/dev/null)
-  if echo "$HDMI_RAW" | grep -q "HDMI"; then
-    HDMI_STATUS="🟢 ΝΑΙ (tvservice)"
-  else
-    HDMI_STATUS="🔴 ΟΧΙ (tvservice)"
-  fi
+  HDMI_STATUS="🔴 ΟΧΙ (kmsprint)"
 fi
 
 # 📬 Telegram
@@ -34,5 +24,3 @@ MSG="📡 $HOST\n🌡️ $TEMP\n🧠 RAM: $RAM\n🔁 $UPTIME\n🖥️ HDMI: $HDM
 curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
   -d chat_id="$CHAT_ID" \
   -d text="$MSG"
-
-
