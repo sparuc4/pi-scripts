@@ -10,10 +10,11 @@ while true; do
 
   case $choice in
     1)
-      echo "⬇️ Κατεβαίνει το install_status.sh..."
-      wget -q https://raw.githubusercontent.com/sparuc4/pi-scripts/main/install_status.sh -O install_status.sh
-      bash install_status.sh
-      ;;
+      echo "📥 Κατεβάζω το status.sh από το GitHub..."
+      wget -q https://raw.githubusercontent.com/sparuc4/pi-scripts/main/status.sh -O status.sh
+      chmod +x status.sh
+      ./status.sh
+
     2)
       echo "⬇️ Κατεβαίνει το install_sd_check.sh..."
       wget -q https://raw.githubusercontent.com/sparuc4/pi-scripts/main/install_sd_check.sh -O install_sd_check.sh
