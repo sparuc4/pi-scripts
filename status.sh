@@ -32,6 +32,7 @@ done < <(kmsprint 2>/dev/null)
 
 HDMI_JSON="[${HDMI_JSON%,}]"
 
+# Save JSON for the panel
 cat <<EOF > /home/pi/status.json
 {
   "hostname": "$HOST",
@@ -44,17 +45,18 @@ cat <<EOF > /home/pi/status.json
 }
 EOF
 
-# Optional: Telegram
+# Telegram Send
 BOT_TOKEN=$(cat /home/pi/.telegram_token 2>/dev/null)
 CHAT_ID=$(cat /home/pi/.telegram_id 2>/dev/null)
 
 if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
   HDMI_LINE=$(echo "$HDMI_JSON" | grep -o '"port":"[^"]*","status":"connected","resolution":"[^"]*"' | head -n1 | sed 's/","/\n/g' | sed 's/"/ /g' | tr -d '{}')
   MSG="📡 $HOST
-🌡️ $TEMP
+🌡️ CPU Temp: $TEMP
 🧠 RAM: $RAM
-🔁 $UPTIME
-🖥️ HDMI: $HDMI_LINE"
+🔁 Uptime: $UPTIME
+🖥️ CPU %: $CPU_USAGE
+📺 HDMI: $HDMI_LINE"
 
   curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage \
     -d chat_id="$CHAT_ID" \
