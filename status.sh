@@ -4,7 +4,7 @@ HOST=$(hostname)
 TEMP=$(vcgencmd measure_temp | cut -d "=" -f2)
 RAM=$(free -h | awk '/Mem:/ {print $3 " / " $2}')
 UPTIME=$(uptime -p | cut -d " " -f2-)
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8"%"}')
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4 "%"}')
 
 HDMI_JSON=""
 CURRENT_PORT=""
@@ -32,19 +32,19 @@ done < <(kmsprint 2>/dev/null)
 
 HDMI_JSON="[${HDMI_JSON%,}]"
 
-# Αποθήκευση JSON για το Panel
 cat <<EOF > /home/pi/status.json
 {
   "hostname": "$HOST",
   "temperature": "$TEMP",
   "ram": "$RAM",
   "uptime": "$UPTIME",
+  "cpu_temp": "$TEMP",
   "cpu_usage": "$CPU_USAGE",
   "hdmi": $HDMI_JSON
 }
 EOF
 
-# --- Αποστολή στο Telegram ---
+# Optional: Telegram
 BOT_TOKEN=$(cat /home/pi/.telegram_token 2>/dev/null)
 CHAT_ID=$(cat /home/pi/.telegram_id 2>/dev/null)
 
@@ -54,7 +54,6 @@ if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
 🌡️ $TEMP
 🧠 RAM: $RAM
 🔁 $UPTIME
-🔥 CPU: $CPU_USAGE
 🖥️ HDMI: $HDMI_LINE"
 
   curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage \
