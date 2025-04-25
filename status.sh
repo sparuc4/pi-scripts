@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- Έλεγχος για νεότερη έκδοση ---
-LOCAL_VERSION="2.1.3"
+LOCAL_VERSION="2.1.4"
 SCRIPT_PATH="/home/pi/status.sh"
 REMOTE_URL="https://raw.githubusercontent.com/sparuc4/pi-scripts/main/status.sh"
 REMOTE_VERSION=$(curl -s "$REMOTE_URL" | grep '^LOCAL_VERSION=' | cut -d '"' -f2)
@@ -20,6 +20,13 @@ TEMP=$(vcgencmd measure_temp | cut -d "=" -f2)
 RAM=$(free -h | awk '/Mem:/ {print $3 " / " $2}')
 UPTIME=$(uptime -p | cut -d " " -f2-)
 CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4 "%"}')
+
+# --- Έλεγχος για διαθέσιμα OS updates ---
+UPDATE_COUNT=$(apt list --upgradable 2>/dev/null | grep -vc 'Listing...')
+UPDATE_AVAILABLE="no"
+if [[ "$UPDATE_COUNT" -gt 0 ]]; then
+  UPDATE_AVAILABLE="yes"
+fi
 
 HDMI_JSON=""
 CURRENT_PORT=""
@@ -56,7 +63,8 @@ cat <<EOF > /home/pi/status.json
   "uptime": "$UPTIME",
   "cpu_temp": "$TEMP",
   "cpu_usage": "$CPU_USAGE",
-  "hdmi": $HDMI_JSON
+  "hdmi": $HDMI_JSON,
+  "update_available": "$UPDATE_AVAILABLE"
 }
 EOF
 
@@ -72,6 +80,7 @@ if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
 🔁 Uptime: $UPTIME
 🖥️ CPU %: $CPU_USAGE
 📺 HDMI: $HDMI_LINE
+⬆️ Updates Available: $UPDATE_AVAILABLE
 📦 Script Version: $LOCAL_VERSION"
 
   curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage \
