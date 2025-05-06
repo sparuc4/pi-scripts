@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- Έλεγχος για νεότερη έκδοση ---
-LOCAL_VERSION="2.1.4"
+LOCAL_VERSION="2.1.5"
 SCRIPT_PATH="/home/pi/status.sh"
 REMOTE_URL="https://raw.githubusercontent.com/sparuc4/pi-scripts/main/status.sh"
 REMOTE_VERSION=$(curl -s "$REMOTE_URL" | grep '^LOCAL_VERSION=' | cut -d '"' -f2)
@@ -68,13 +68,14 @@ cat <<EOF > /home/pi/status.json
 }
 EOF
 
-# --- Αποστολή στο Telegram ---
-BOT_TOKEN=$(cat /home/pi/.telegram_token 2>/dev/null)
-CHAT_ID=$(cat /home/pi/.telegram_id 2>/dev/null)
+# --- Αποστολή στο Telegram (μόνο αν ζητηθεί) ---
+if [[ "$1" == "--notify" ]]; then
+  BOT_TOKEN=$(cat /home/pi/.telegram_token 2>/dev/null)
+  CHAT_ID=$(cat /home/pi/.telegram_id 2>/dev/null)
 
-if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
-  HDMI_LINE=$(echo "$HDMI_JSON" | grep -o '"port":"[^"]*","status":"connected","resolution":"[^"]*"' | head -n1 | sed 's/","/\n/g' | sed 's/"/ /g' | tr -d '{}')
-  MSG="📡 $HOST
+  if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
+    HDMI_LINE=$(echo "$HDMI_JSON" | grep -o '"port":"[^"]*","status":"connected","resolution":"[^"]*"' | head -n1 | sed 's/","/\n/g' | sed 's/"/ /g' | tr -d '{}')
+    MSG="📡 $HOST
 🌡️ CPU Temp: $TEMP
 🧠 RAM: $RAM
 🔁 Uptime: $UPTIME
@@ -83,7 +84,8 @@ if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
 ⬆️ Updates Available: $UPDATE_AVAILABLE
 📦 Script Version: $LOCAL_VERSION"
 
-  curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage \
-    -d chat_id="$CHAT_ID" \
-    -d text="$MSG"
+    curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage \
+      -d chat_id="$CHAT_ID" \
+      -d text="$MSG" > /dev/null
+  fi
 fi
